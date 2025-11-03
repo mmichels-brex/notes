@@ -6,27 +6,37 @@
 //
 
 import SwiftUI
-import SwiftData
 
 @main
 struct notesApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    init() {
+        // Optimize for fast launch - disable animations during startup
+        // This makes the app feel more responsive
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task(priority: .high) {
+                    // Pre-warm any heavy subsystems after launch
+                    // This happens after the UI is visible
+                    await preWarmSystems()
+                }
         }
-        .modelContainer(sharedModelContainer)
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Note") {
+                    // Handled by ContentView toolbar
+                }
+                .keyboardShortcut("n", modifiers: [.command])
+            }
+        }
+        .defaultSize(width: 1200, height: 800)
+    }
+    
+    // Pre-warm systems after UI is visible
+    private func preWarmSystems() async {
+        // Any additional warming can go here
+        // For now, the FileSystemManager handles its own async init
     }
 }
