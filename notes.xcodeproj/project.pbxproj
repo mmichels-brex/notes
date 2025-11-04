@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		86ADA18F2EB994EE00629CF1 /* Down in Frameworks */ = {isa = PBXBuildFile; productRef = 86ADA18E2EB994EE00629CF1 /* Down */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		866EBBD92EB9530C00D04785 /* notes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = notes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -27,7 +23,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				86ADA18F2EB994EE00629CF1 /* Down in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +65,6 @@
 			);
 			name = notes;
 			packageProductDependencies = (
-				86ADA18E2EB994EE00629CF1 /* Down */,
 			);
 			productName = notes;
 			productReference = 866EBBD92EB9530C00D04785 /* notes.app */;
@@ -101,7 +95,6 @@
 			mainGroup = 866EBBD02EB9530C00D04785;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				86ADA1B22EB9961300629CF1 /* XCRemoteSwiftPackageReference "Down" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 866EBBDA2EB9530C00D04785 /* Products */;
@@ -257,6 +250,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -264,11 +258,13 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Notes;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.michels.notes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -287,6 +283,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -294,11 +291,13 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Notes;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.michels.notes;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -334,33 +333,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		86ADA1492EB9923200629CF1 /* XCRemoteSwiftPackageReference "Down" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/johnxnguyen/Down";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-		86ADA1B22EB9961300629CF1 /* XCRemoteSwiftPackageReference "Down" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/johnxnguyen/Down";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		86ADA18E2EB994EE00629CF1 /* Down */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 86ADA1492EB9923200629CF1 /* XCRemoteSwiftPackageReference "Down" */;
-			productName = Down;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 866EBBD12EB9530C00D04785 /* Project object */;
 }

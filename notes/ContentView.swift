@@ -12,15 +12,21 @@ struct ContentView: View {
     @State private var fileManager = FileSystemManager()
     @State private var selectedFile: NoteFile?
     @State private var currentContent = "" // Optimized: removed type annotation
-    @State private var showingNewNoteDialog = false
-    @State private var newNoteName = ""
     @State private var currentFilePath = "" // Optimized: removed type annotation
-    @State private var isEditingPath = false
     @State private var showingDeleteConfirmation = false
     @State private var fileToDelete: URL?
+    @FocusState private var isFilePathFocused: Bool
+    @State private var isCreatingNewFile = false
+    @State private var newFileTemporaryName = ""
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var renameTask: Task<Void, Never>?
+    @State private var editorId = UUID() // Stable ID that only changes when switching files
+    @State private var isRenamingCurrentFile = false // Flag to prevent editor recreation during renames
+    @AppStorage("lastSelectedFilePath") private var lastSelectedFilePath: String = ""
+    @State private var hasRestoredSelection = false
     
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             VStack {
                 if let rootFolder = fileManager.rootFolder {
                     FileTreeView(
@@ -43,6 +49,7 @@ struct ContentView: View {
                             fileManager.deleteItem(at: url)
                             if selectedFile?.url == url {
                                 selectedFile = nil
+                                lastSelectedFilePath = "" // Clear saved path
                             }
                         }
                     )
@@ -52,7 +59,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("")
-            .navigationSplitViewColumnWidth(min: 200, ideal: 250)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 200)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {
@@ -62,26 +69,17 @@ struct ContentView: View {
                     }
                     .keyboardShortcut("n", modifiers: [.command])
                 }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        showingNewNoteDialog = true
-                    }) {
-                        Label("New Note with Name", systemImage: "doc.badge.plus")
-                    }
-                    .keyboardShortcut("n", modifiers: [.command, .shift])
-                }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        handleDeleteKeyPress()
-                    }) {
-                        Label("Delete", systemImage: "trash")
-                    }
-                    .keyboardShortcut("d", modifiers: [.command])
-                    .disabled(selectedFile == nil)
-                }
             }
+            // Add Cmd+S keyboard shortcut for sidebar toggle (uses native button)
+            .background(
+                Button(action: {
+                    toggleSidebar()
+                }) {
+                    EmptyView()
+                }
+                .keyboardShortcut("s", modifiers: [.command])
+                .hidden()
+            )
         } detail: {
             if let file = selectedFile {
                 VStack(spacing: 0) {
@@ -91,14 +89,56 @@ struct ContentView: View {
                             .foregroundStyle(.secondary)
                             .font(.system(size: 14))
                         
-                        TextField("file/path/name", text: $currentFilePath)
+                        TextField(
+                            isCreatingNewFile ? newFileTemporaryName : "file/path/name",
+                            text: $currentFilePath,
+                            prompt: Text(isCreatingNewFile ? newFileTemporaryName : "file/path/name").foregroundColor(.secondary)
+                        )
                             .textFieldStyle(.plain)
                             .font(.system(size: 14))
+                            .focused($isFilePathFocused)
                             .onSubmit {
                                 moveFileToPath()
+                                isCreatingNewFile = false
+                                newFileTemporaryName = ""
                             }
-                            .onChange(of: selectedFile) { _, _ in
-                                updateFilePathFromSelection()
+                            .onChange(of: selectedFile) { _, newValue in
+                                // Don't update path if we're creating a new file
+                                if !isCreatingNewFile {
+                                    updateFilePathFromSelection()
+                                }
+                            }
+                            .onChange(of: isFilePathFocused) { _, isFocused in
+                                // If user unfocuses without entering a name, restore the actual filename
+                                if !isFocused {
+                                    if currentFilePath.isEmpty {
+                                        updateFilePathFromSelection()
+                                    }
+                                    isCreatingNewFile = false
+                                    newFileTemporaryName = ""
+                                }
+                            }
+                            .onChange(of: currentFilePath) { oldValue, newValue in
+                                // Cancel any pending rename task
+                                renameTask?.cancel()
+                                
+                                // Don't trigger rename if the field is empty or hasn't changed
+                                guard !newValue.isEmpty, oldValue != newValue else { return }
+                                
+                                // Debounce the rename operation (wait 0.5s after user stops typing)
+                                renameTask = Task {
+                                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                                    
+                                    // Check if task was cancelled
+                                    guard !Task.isCancelled else { return }
+                                    
+                                    // Perform the rename (editor focus preserved via stable editorId)
+                                    await MainActor.run {
+                                        moveFileToPath()
+                                        isCreatingNewFile = false
+                                        newFileTemporaryName = ""
+                                    }
+                                }
                             }
                         
                         Text(".md")
@@ -116,18 +156,30 @@ struct ContentView: View {
                         file: file,
                         content: $currentContent,
                         onSave: {
-                            fileManager.saveNote(content: currentContent, to: file.url)
+                            // Always save to the current selected file location
+                            if let currentURL = selectedFile?.url {
+                                fileManager.saveNote(content: currentContent, to: currentURL)
+                            }
                         }
                     )
+                    .id(editorId) // Force new editor instance only when switching files
                 }
                 .navigationSubtitle("")
                 .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        EmptyView()
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: {
+                            handleDeleteKeyPress()
+                        }) {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .keyboardShortcut("d", modifiers: [.command])
                     }
                 }
                 .onAppear {
-                    updateFilePathFromSelection()
+                    // Don't update path if we're creating a new file
+                    if !isCreatingNewFile {
+                        updateFilePathFromSelection()
+                    }
                 }
             } else {
                 VStack(spacing: 16) {
@@ -141,30 +193,40 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onChange(of: selectedFile) { _, newFile in
+        .onChange(of: selectedFile) { oldFile, newFile in
+            // Cancel any pending rename task when switching files
+            renameTask?.cancel()
+            
             if let newFile = newFile {
-                currentContent = fileManager.readNote(at: newFile.url)
-                updateFilePathFromSelection()
-            }
-        }
-        .alert("New Note", isPresented: $showingNewNoteDialog) {
-            TextField("Note name", text: $newNoteName)
-            Button("Create") {
-                if !newNoteName.isEmpty {
-                    if let newFileURL = fileManager.createNote(named: newNoteName, in: fileManager.notesDirectory) {
-                        // Find and select the new file
-                        fileManager.loadFileTree()
-                        if let rootFolder = fileManager.rootFolder {
-                            if let newFile = findFile(url: newFileURL, in: rootFolder) {
-                                selectedFile = newFile
-                            }
-                        }
-                    }
-                    newNoteName = ""
+                // Save the selected file path for restoration on next launch
+                lastSelectedFilePath = newFile.url.path
+                
+                // Only regenerate editor ID when switching files, not during renames
+                if !isRenamingCurrentFile {
+                    editorId = UUID()
+                    // Only reload content when switching to a different file, not during renames
+                    currentContent = fileManager.readNote(at: newFile.url)
+                }
+                isRenamingCurrentFile = false // Reset flag
+                
+                // Don't update path if we're creating a new file (let user type name)
+                if !isCreatingNewFile {
+                    updateFilePathFromSelection()
                 }
             }
-            Button("Cancel", role: .cancel) {
-                newNoteName = ""
+        }
+        .onChange(of: fileManager.rootFolder) { _, newRootFolder in
+            // Restore last selected file when file tree is loaded
+            guard !hasRestoredSelection, 
+                  let rootFolder = newRootFolder,
+                  !lastSelectedFilePath.isEmpty else { return }
+            
+            hasRestoredSelection = true
+            
+            // Try to find and select the last selected file
+            let fileURL = URL(fileURLWithPath: lastSelectedFilePath)
+            if let file = findFile(url: fileURL, in: rootFolder) {
+                selectedFile = file
             }
         }
         .alert("Delete File", isPresented: $showingDeleteConfirmation) {
@@ -173,6 +235,7 @@ struct ContentView: View {
                     fileManager.deleteItem(at: url)
                     if selectedFile?.url == url {
                         selectedFile = nil
+                        lastSelectedFilePath = "" // Clear saved path
                     }
                     fileToDelete = nil
                 }
@@ -205,16 +268,27 @@ struct ContentView: View {
     }
     
     private func createQuickNote() {
-        // Create a new untitled note
+        // Create a new note with temporary unique name, then let user rename it
         let timestamp = Int(Date().timeIntervalSince1970)
-        let tempName = "Untitled-\(timestamp)"
+        let tempName = "untitled-\(timestamp)"
         
         if let newFileURL = fileManager.createNote(named: tempName, in: fileManager.notesDirectory, withInitialContent: false) {
             fileManager.loadFileTree()
             if let rootFolder = fileManager.rootFolder {
                 if let newFile = findFile(url: newFileURL, in: rootFolder) {
+                    // Set flag to prevent auto-updating the path field
+                    isCreatingNewFile = true
+                    newFileTemporaryName = tempName
+                    
                     selectedFile = newFile
                     currentContent = fileManager.readNote(at: newFile.url)
+                    
+                    // Clear the path field and focus it so user can type the name immediately
+                    // The placeholder will show the temporary name
+                    currentFilePath = ""
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        isFilePathFocused = true
+                    }
                 }
             }
         }
@@ -244,21 +318,34 @@ struct ContentView: View {
         guard let file = selectedFile else { return }
         
         let newPath = currentFilePath.trimmingCharacters(in: .whitespaces)
-        guard !newPath.isEmpty else { return }
+        
+        // If empty, generate a unique name
+        let finalPath: String
+        if newPath.isEmpty {
+            let timestamp = Int(Date().timeIntervalSince1970)
+            finalPath = "untitled-\(timestamp)"
+        } else {
+            finalPath = newPath
+        }
         
         let currentPath = getPathFromFile(file.url)
         
         // If path hasn't changed, do nothing
-        guard newPath != currentPath else { return }
+        guard finalPath != currentPath else { 
+            currentFilePath = currentPath
+            return 
+        }
         
         // Move the file
-        if let newURL = fileManager.moveNote(from: file.url, toPath: newPath) {
-            // Find and select the new file
+        if let newURL = fileManager.moveNote(from: file.url, toPath: finalPath) {
+            // Reload the file tree and update selection
             fileManager.loadFileTree()
             if let rootFolder = fileManager.rootFolder {
                 if let newFile = findFile(url: newURL, in: rootFolder) {
+                    // Set flag to prevent editor recreation during rename
+                    isRenamingCurrentFile = true
                     selectedFile = newFile
-                    currentFilePath = newPath
+                    currentFilePath = finalPath
                 }
             }
         } else {
@@ -271,6 +358,12 @@ struct ContentView: View {
         guard let file = selectedFile else { return }
         fileToDelete = file.url
         showingDeleteConfirmation = true
+    }
+    
+    private func toggleSidebar() {
+        withAnimation {
+            columnVisibility = columnVisibility == .all ? .detailOnly : .all
+        }
     }
 }
 

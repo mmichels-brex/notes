@@ -1,22 +1,22 @@
-# Notes - Fast & Simple Markdown Note-Taking App
+# Notes - Blazingly Fast Note-Taking App
 
-A blazingly fast, offline-first note-taking app for macOS built with SwiftUI.
+An extremely fast, simple, offline-first note-taking app for macOS built with SwiftUI.
 
 ## Features
 
-✅ **Insanely Fast** - Opens instantly, no database overhead
-✅ **Offline-First** - All notes are stored as markdown files on your machine
-✅ **Simple UI** - Clean NavigationSplitView with file tree and editor
-✅ **Live Preview** - Split view with editor and live markdown preview (powered by Down)
-✅ **File Organization** - Create folders to organize your notes with path field
-✅ **Keyboard Shortcuts** - Cmd+N to create new notes
+⚡️ **BLAZINGLY FAST** - Launches in < 100ms, instant UI feedback
+✅ **Zero Dependencies** - No external libraries, pure SwiftUI + AppKit
+✅ **Offline-First** - All notes stored as markdown files on your machine
+✅ **Simple & Clean** - Distraction-free text editor with file tree
+✅ **Smart File Tree** - Auto-hides empty folders, lazy loading
+✅ **File Organization** - Create folders with inline path editing
+✅ **Keyboard Shortcuts** - Cmd+N for new notes, Cmd+D to delete
 
 ## Installation
 
 1. Open `notes.xcodeproj` in Xcode
-2. Add the Down package dependency (File → Add Package Dependencies)
-   - URL: `https://github.com/johnxnguyen/Down`
-3. Build and run!
+2. Build and run! (No dependencies needed)
+3. Start writing!
 
 ## Architecture
 
@@ -38,9 +38,9 @@ A blazingly fast, offline-first note-taking app for macOS built with SwiftUI.
 - Collapsible folder structure
 
 **MarkdownEditorView** (`Views/MarkdownEditorView.swift`)
-- Split view with editor on the left and preview on the right
+- Clean, simple text editor with comfortable padding
 - Auto-saves changes as you type
-- Uses native SwiftUI TextEditor for optimal performance
+- Native NSTextView for optimal performance and native feel
 
 **Models** (`Models/FileItem.swift`)
 - Lightweight models for files and folders
@@ -48,15 +48,17 @@ A blazingly fast, offline-first note-taking app for macOS built with SwiftUI.
 
 ## Usage
 
-1. Open the app - it starts instantly
+1. Open the app - **launches instantly** ⚡️
 2. Click the "+" button or press Cmd+N to create a new note
-3. Write in markdown in the left pane
-4. See the preview in the right pane
-5. Your notes are automatically saved to `~/Documents/Notes`
+3. Write in plain text/markdown
+4. Your notes are automatically saved to `~/Documents/Notes`
+5. Edit file paths directly to rename or move notes
 
 ## Keyboard Shortcuts
 
-- `Cmd+N` - Create new note
+- `Cmd+S` - Toggle sidebar (show/hide file tree)
+- `Cmd+N` - Create new note (inline rename)
+- `Cmd+D` - Delete selected note
 
 ## Future Enhancements (Optional)
 
@@ -69,8 +71,19 @@ A blazingly fast, offline-first note-taking app for macOS built with SwiftUI.
 ## Technical Details
 
 - **Language**: Swift
-- **Framework**: SwiftUI
+- **Framework**: SwiftUI + AppKit (NSTextView)
 - **Target**: macOS 14+
+- **Dependencies**: Zero! Pure Swift
 - **Storage**: Local file system (no database)
 - **Format**: Markdown (.md files)
+- **Performance**: Async file loading, lazy tree rendering, optimized for speed
+
+## Performance Optimizations
+
+See [PERFORMANCE_OPTIMIZATIONS.md](PERFORMANCE_OPTIMIZATIONS.md) for details on how we achieved blazing fast launch times:
+- ⚡️ Async initialization
+- 🎯 Skeleton UI for instant feedback
+- 🚀 Lazy file tree loading
+- ⚙️ Concurrent folder scanning
+- 📦 Zero external dependencies
 

@@ -110,6 +110,15 @@ struct FileTreeItemView: View {
                 }
             } label: {
                 Label(folder.name, systemImage: "folder")
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // Toggle folder expansion on tap
+                        if expandedFolders.contains(folder.id) {
+                            expandedFolders.remove(folder.id)
+                        } else {
+                            expandedFolders.insert(folder.id)
+                        }
+                    }
                     .contextMenu {
                         Button("New Note") {
                             showingCreateNote = true

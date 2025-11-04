@@ -17,6 +17,7 @@ struct notesApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .frame(minWidth: 700, idealWidth: 800, minHeight: 500, idealHeight: 600)
                 .task(priority: .high) {
                     // Pre-warm any heavy subsystems after launch
                     // This happens after the UI is visible
@@ -31,7 +32,7 @@ struct notesApp: App {
                 .keyboardShortcut("n", modifiers: [.command])
             }
         }
-        .defaultSize(width: 1200, height: 800)
+        .windowResizability(.contentSize)
     }
     
     // Pre-warm systems after UI is visible

@@ -54,15 +54,11 @@ Task.detached(priority: .userInitiated) {
 
 ---
 
-### 5. **Debounced Markdown Rendering** ✅
-**Before:** Markdown rendered on every keystroke
-**After:** 150ms debounce + background rendering
+### 5. **Simplified Text Editor** ✅
+**Before:** Split view with live markdown preview (heavy rendering)
+**After:** Single, clean text editor (no rendering overhead)
 
-```swift
-try? await Task.sleep(nanoseconds: 150_000_000)
-```
-
-**Impact:** **Smoother typing experience**, no UI lag during rapid editing
+**Impact:** **Instant text editing**, zero rendering lag, blazing fast performance
 
 ---
 
@@ -94,7 +90,7 @@ children.reserveCapacity(sortedContents.count)
 | Time to First Frame | 300-500ms | **50-100ms** | **5x faster** |
 | File Tree Load (100 files) | 200-300ms | **80-120ms** | **2.5x faster** |
 | File Tree Load (1000 files) | 2-3s | **500-800ms** | **4x faster** |
-| Markdown Preview Update | Blocks UI | **Non-blocking** | No lag |
+| Text Editing | Can lag | **Instant** | Zero lag |
 | Deep Folder Navigation | Loads all upfront | **On-demand** | Instant |
 
 ---
@@ -107,6 +103,17 @@ children.reserveCapacity(sortedContents.count)
 4. **~200ms** - First 2 levels of files appear
 5. **~300ms** - All visible content loaded
 6. User can start interacting immediately!
+
+---
+
+## 🎯 Simplicity = Speed
+
+We removed the Down markdown rendering library and simplified to a **single text editor view**. This means:
+- ✅ **No external dependencies**
+- ✅ **Zero markdown parsing overhead**
+- ✅ **Instant text editing**
+- ✅ **Smaller app bundle**
+- ✅ **Faster compile times**
 
 ---
 

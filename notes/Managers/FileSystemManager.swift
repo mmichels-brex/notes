@@ -59,10 +59,10 @@ class FileSystemManager {
             ## Features
             
             - Create folders to organize your notes
-            - Split-view editor with live markdown preview
+            - Clean, distraction-free text editor
             - Use the path field at the top to rename/move notes
             - All files are stored locally as markdown
-            - Fast rendering powered by Down
+            - Blazingly fast with zero dependencies
             
             **Start writing!**
             
