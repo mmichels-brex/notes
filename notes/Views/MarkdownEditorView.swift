@@ -15,6 +15,17 @@ struct MarkdownEditorView: View {
     
     var body: some View {
         PlainTextEditor(text: $content, onSave: onSave)
+            .background(
+                // Subtle gradient background for depth
+                LinearGradient(
+                    colors: [
+                        Color(nsColor: .textBackgroundColor),
+                        Color(nsColor: .textBackgroundColor).opacity(0.98)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
     }
 }
 
@@ -33,10 +44,21 @@ struct PlainTextEditor: NSViewRepresentable {
         textView.usesRuler = false
         textView.importsGraphics = false
         
-        // Clean, modern font styling
-        textView.font = .systemFont(ofSize: 15, weight: .regular)
-        textView.textColor = .textColor
-        textView.backgroundColor = .textBackgroundColor
+        // Beautiful, modern typography with SF Pro
+        textView.font = .systemFont(ofSize: 16, weight: .regular)
+        textView.textColor = NSColor.labelColor
+        textView.backgroundColor = .clear  // Let SwiftUI gradient show through
+        
+        // Better line spacing for readability
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 4
+        paragraphStyle.paragraphSpacing = 12
+        textView.defaultParagraphStyle = paragraphStyle
+        textView.typingAttributes = [
+            .font: NSFont.systemFont(ofSize: 16, weight: .regular),
+            .foregroundColor: NSColor.labelColor,
+            .paragraphStyle: paragraphStyle
+        ]
         
         // Better text editing experience
         textView.isAutomaticQuoteSubstitutionEnabled = false
@@ -45,7 +67,7 @@ struct PlainTextEditor: NSViewRepresentable {
         textView.isAutomaticSpellingCorrectionEnabled = true
         textView.isContinuousSpellCheckingEnabled = true
         
-        // Enable link detection and make links clickable
+        // Enable link detection with modern styling
         textView.isAutomaticLinkDetectionEnabled = true
         textView.linkTextAttributes = [
             .foregroundColor: NSColor.systemBlue,
@@ -53,8 +75,15 @@ struct PlainTextEditor: NSViewRepresentable {
             .cursor: NSCursor.pointingHand
         ]
         
-        // Nice padding for comfortable writing
-        textView.textContainerInset = NSSize(width: 20, height: 20)
+        // Generous padding for comfortable writing (like Apple Notes)
+        textView.textContainerInset = NSSize(width: 32, height: 32)
+        
+        // Smooth scrolling
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.scrollerStyle = .overlay
+        scrollView.backgroundColor = .clear
         
         // Set initial content
         textView.string = text

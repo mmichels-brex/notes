@@ -10,14 +10,14 @@ import SwiftUI
 @main
 struct notesApp: App {
     init() {
-        // Optimize for fast launch - disable animations during startup
-        // This makes the app feel more responsive
+        // Modern appearance configuration
+        configureAppearance()
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 700, idealWidth: 800, minHeight: 500, idealHeight: 600)
+                .frame(minWidth: 800, idealWidth: 1200, minHeight: 600, idealHeight: 800)
                 .task(priority: .high) {
                     // Pre-warm any heavy subsystems after launch
                     // This happens after the UI is visible
@@ -33,6 +33,13 @@ struct notesApp: App {
             }
         }
         .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+    }
+    
+    // Configure modern appearance
+    private func configureAppearance() {
+        // Enable smooth scrolling and animations - overlay scrollers
+        // This is already handled per-view, so no global config needed
     }
     
     // Pre-warm systems after UI is visible
